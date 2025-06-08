@@ -182,7 +182,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             obtenerDatosCitas(cuentaID);
             buscarCitas();
             //Para chats
-            listarDatos();
+            listarDatos(cuentaID);
             buscarChats();
             try {
                 mostrarChats();
@@ -386,7 +386,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     abrirAgregarChat();
                 } else if (item.getItemId() == R.id.mnxEliminar) {
                     eliminarChat();
-                    listarDatos();
+                    listarDatos(cuentaID);
                     buscarChats();
                 }
                 return true;
@@ -688,9 +688,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     //AQUI COMIENZA PARA CHATS
-    private void listarDatos(){//Error al mostrar datos
+    private void listarDatos(String idCuenta){//Error al mostrar datos
         di = new detectarInternet(this);
-        if(di.hayConexionInternet()){//online
+        if(di.hayConexionInternet()){//online a
             try{
                 databaseReference  = FirebaseDatabase.getInstance().getReference("Persona_chats");
                 FirebaseMessaging.getInstance().getToken().addOnCompleteListener(tarea->{
@@ -706,11 +706,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                     try{
                                         if( snapshot.getChildrenCount()<=0 ){
                                             parametros.putString("accion", "nuevo");
-                                            if(layout_chat.getVisibility() == View.VISIBLE){
+/*                                            if(layout_chat.getVisibility() == View.VISIBLE){
                                                 mostrarMsg("No hay chats registrados.");
-                                                abrirAgregarChat();
+                                                //abrirAgregarChat();
                                             }
-                                            //abrirAgregarChat();
+                                            //abrirAgregarChat();*/
                                         }
                                     }catch (Exception e){
                                         mostrarMsg("Error al llamar la ventana: " + e.getMessage());
@@ -725,10 +725,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     }
                 });
 
-                databaseReference.addValueEventListener(new ValueEventListener() {
+                databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {//databaseReference
                         try{
+                            jsonArrayChats = new JSONArray();
                             for( DataSnapshot dataSnapshot : snapshot.getChildren() ){
                                 chats chat = dataSnapshot.getValue(chats.class);
                                 jsonObject = new JSONObject();
@@ -742,7 +743,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 //jsonObject.put("urlCompletaFotoFirestore", chat.getUrlCompletaFotoFirestore());
                                 jsonObject.put("to", chat.getToken());
                                 jsonObject.put("from", miToken);
-                                jsonObject.put("llave", chat.getLlave());
+                                jsonObject.put("token", chat.getToken());
                                 jsonArrayChats.put(jsonObject);
                             }
                             mostrarDatosChats();//setOnItemClickListener
@@ -762,7 +763,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         try{
             db = new DB(this);
             //cChat = db.lista_chat(cuentaID); _id
-            cChat = db.lista_chat();
+            cChat = db.lista_chat(idCuenta);
             if(cChat.moveToFirst()){
                 jsonArrayChats = new JSONArray();
                 do{
@@ -776,22 +777,24 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     jsonObject.put("urlFoto", cChat.getString(6));
                     //jsonObject.put("cuentaID", cMascotas.getString(7));
                     jsonObject.put("to", cChat.getString(7));
-                    jsonObject.put("llave", cChat.getString(8));
+                    jsonObject.put("token", cChat.getString(8));
+                    jsonObject.put("cuentaID", cChat.getString(9));
                     jsonArrayChats.put(jsonObject);
                 }while(cChat.moveToNext());
 
                 mostrarDatosChats();
 
             }else {
-                if(layout_chat.getVisibility() == View.VISIBLE){
-                    //mostrarMsg("No hay chats registrados.");
-                    //abrirAgregarChat();
-                }
+/*                if(layout_chat.getVisibility() == View.VISIBLE){
+                    mostrarMsg("No hay chats registrados.");
+                    abrirAgregarChat();
+                }*/
 
             }
         }catch (Exception e){
             mostrarMsg("Error: " + e.getMessage());
-        }}
+        }
+        }
 
 
     }
@@ -814,18 +817,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             jsonObject.getString("urlFoto"),
                             //jsonObject.getString("urlCompletaFotoFirestore"),
                             jsonObject.getString("to"),
-                            jsonObject.getString("llave")
+                            jsonObject.getString("token")//llave
                     );
                     alChat.add(misChat);
                 }
                     alChatCopia.addAll(alChat);
                     ltsChat.setAdapter(new AdaptadorChats(this, alChat));
                     registerForContextMenu(ltsChat);
-            }else{
+/*            }else{
                 if(layout_chat.getVisibility() == View.VISIBLE){
                     mostrarMsg("No hay chats registrados.");
                     abrirAgregarChat();
-                }
+                }*/
             }
         }catch (Exception e){
             mostrarAlertDialog("Error ID al mostrar: " + e.getMessage());
@@ -878,7 +881,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 di = new detectarInternet(this);
                 if(di.hayConexionInternet()){//online
 
-        databaseReference  = FirebaseDatabase.getInstance().getReference("Persona_chats").child(jsonArrayChats.getJSONObject(posicion).getString("llave")); // si no funciona cambiar idChat por llave
+        databaseReference  = FirebaseDatabase.getInstance().getReference("Persona_chats").child(jsonArrayChats.getJSONObject(posicion).getString("token")); // si no funciona cambiar idChat por llave
 
         // Eliminar el registro
         databaseReference.removeValue()
@@ -895,7 +898,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
                 String respuesta = db.administrar_Chat("eliminar", new String[]{jsonArrayChats.getJSONObject(posicion).getString("idChat")});
                 if(respuesta.equals("ok")) {
-                    listarDatos();//idAmigo
+                    listarDatos(cuentaID);//idAmigo
                     mostrarMsg("Registro eliminado con exito");
                 }else{
                     mostrarMsg("Error al eliminar: " + respuesta);
@@ -912,7 +915,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             mostrarMsg("Error al eliminar: " + e.getMessage());
         }
     //
-/*        try{
+/*        try{ abrirVentanaChat()
 =======
 
             String nombre = jsonArrayChats.getJSONObject(posicion).getString("nombre");
