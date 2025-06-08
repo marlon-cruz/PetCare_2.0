@@ -9,6 +9,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -122,6 +123,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         fabAgregarMascotas = findViewById(R.id.fabAgregarMascotas);
         fabAgregarMascotas.setOnClickListener(view->abrirAgregarMascotas());
 
+        //Para regresar al menu
         String CargarLayout = getIntent().getStringExtra("cargar_layout");
         if("mascotas".equals(CargarLayout)){
             ventanaMascota();
@@ -145,6 +147,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         db = new DB(this);
         db.deleteOldDatabases(this);
 
+        //Menu
         bottomNav.setOnItemSelectedListener(item -> {
             if (item.getItemId() == R.id.mascotasMenu) {
                 ventanaMascota();
@@ -166,7 +169,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             return false;
         });
 
-        lblUbicacion = findViewById(R.id.lblUbicacion);
+        //lblUbicacion = findViewById(R.id.lblUbicacion);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.mapa);
         mapFragment.getMapAsync(this);
 
@@ -179,7 +182,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             obtenerDatosCitas(cuentaID);
             buscarCitas();
             //Para chats
-            listarDatos();
+            listarDatos(cuentaID);
             buscarChats();
             try {
                 mostrarChats();
@@ -206,7 +209,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         fabAgregarMascotas.setOnClickListener(view->abrirAgregarMascotas());
         fabAgregarCitas.setVisibility(View.GONE);
         fabAgregarChat.setVisibility(View.GONE);
-    }
+    }//mostrarDatos
     private void ventanaChat(){
         layout_mascotas.setVisibility(View.GONE);
         layout_chat.setVisibility(View.VISIBLE);
@@ -319,7 +322,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
             posicion = info.position;
             if(layout_chat.getVisibility() == View.VISIBLE) {
-                menu.setHeaderTitle(jsonArrayChats.getJSONObject(posicion).getJSONObject("value").getString("nombre"));
+                menu.setHeaderTitle(jsonArrayChats.getJSONObject(posicion).getString("nombre"));
             } else if (layout_citas.getVisibility() == View.VISIBLE) {
                 menu.setHeaderTitle(jsonArray.getJSONObject(posicion).getString("nombre"));
             }else if(layout_mascotas.getVisibility() == View.VISIBLE){
@@ -379,11 +382,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     abrirAgregarChat();
                 } else if (item.getItemId() == R.id.mnxModificar) {
                     parametros.putString("accion", "modificar");
-                    parametros.putString("chat", jsonArrayChats.getJSONObject(posicion).getJSONObject("value").toString());
+                    parametros.putString("Persona_chats", jsonArrayChats.getJSONObject(posicion).toString());
                     abrirAgregarChat();
                 } else if (item.getItemId() == R.id.mnxEliminar) {
                     eliminarChat();
-                    listarDatos();
+                    listarDatos(cuentaID);
                     buscarChats();
                 }
                 return true;
@@ -683,152 +686,118 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             mostrarMsg("Error: " + e.getMessage());
         }*/
     }
+
     //AQUI COMIENZA PARA CHATS
-    private void listarDatos(){//Error al mostrar datos
-        try{
-            databaseReference  = FirebaseDatabase.getInstance().getReference("Persona_chats");
-            FirebaseMessaging.getInstance().getToken().addOnCompleteListener(tarea->{
-                if(!tarea.isSuccessful()){
-                    mostrarMsg("Error al obtener token: "+tarea.getException().getMessage());
-                    return;
-                }else{
-                    miToken = tarea.getResult();
-                    if( miToken!=null && miToken.length()>0 ){
-                        databaseReference.orderByChild("token").equalTo(miToken).addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                try{
-                                    if( snapshot.getChildrenCount()<=0 ){
-                                        parametros.putString("accion", "nuevo");
-                                        if(layout_chat.getVisibility() == View.VISIBLE){
-                                            mostrarMsg("No hay chats registrados.");
-                                            abrirAgregarChat();
+    private void listarDatos(String idCuenta){//Error al mostrar datos
+        di = new detectarInternet(this);
+        if(di.hayConexionInternet()){//online a
+            try{
+                databaseReference  = FirebaseDatabase.getInstance().getReference("Persona_chats");
+                FirebaseMessaging.getInstance().getToken().addOnCompleteListener(tarea->{
+                    if(!tarea.isSuccessful()){
+                        mostrarMsg("Error al obtener token: "+tarea.getException().getMessage());
+                        return;
+                    }else{
+                        miToken = tarea.getResult();
+                        if( miToken!=null && miToken.length()>0 ){
+                            databaseReference.orderByChild("token").equalTo(miToken).addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                    try{
+                                        if( snapshot.getChildrenCount()<=0 ){
+                                            parametros.putString("accion", "nuevo");
+/*                                            if(layout_chat.getVisibility() == View.VISIBLE){
+                                                mostrarMsg("No hay chats registrados.");
+                                                //abrirAgregarChat();
+                                            }
+                                            //abrirAgregarChat();*/
                                         }
-                                        //abrirAgregarChat();
+                                    }catch (Exception e){
+                                        mostrarMsg("Error al llamar la ventana: " + e.getMessage());
                                     }
-                                }catch (Exception e){
-                                    mostrarMsg("Error al llamar la ventana: " + e.getMessage());
                                 }
-                            }
-                            @Override
-                            public void onCancelled(@NonNull DatabaseError error) {
-                                mostrarMsg("Error se cancelo: " + error.getMessage());
-                            }
-                        });
-                    }
-                }
-            });
-
-            databaseReference.addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {//databaseReference
-                    try{
-                        for( DataSnapshot dataSnapshot : snapshot.getChildren() ){
-                            chats chat = dataSnapshot.getValue(chats.class);
-                            jsonObject = new JSONObject();
-                            jsonObject.put("idChat", chat.getIdChat());//idAmigo
-                            jsonObject.put("nombre", chat.getNombre());
-                            jsonObject.put("direccion", chat.getDireccion());
-                            jsonObject.put("telefono", chat.getTelefono());
-                            jsonObject.put("email", chat.getEmail());
-                            jsonObject.put("dui", chat.getDui());
-                            jsonObject.put("urlFoto", chat.getFoto());
-                            //jsonObject.put("urlCompletaFotoFirestore", chat.getUrlCompletaFotoFirestore());
-                            jsonObject.put("to", chat.getToken());
-                            jsonObject.put("from", miToken);
-                            jsonArrayChats.put(jsonObject);
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError error) {
+                                    mostrarMsg("Error se cancelo: " + error.getMessage());
+                                }
+                            });
                         }
-                        mostrarDatosChats();//setOnItemClickListener
-                    }catch (Exception e){
-                        mostrarMsg("Error al escuchar evento de firebase: " + e.getMessage());
                     }
-                }
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
+                });
 
-                }
-            });
+                databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {//databaseReference
+                        try{
+                            jsonArrayChats = new JSONArray();
+                            for( DataSnapshot dataSnapshot : snapshot.getChildren() ){
+                                chats chat = dataSnapshot.getValue(chats.class);
+                                jsonObject = new JSONObject();
+                                jsonObject.put("idChat", chat.getIdChat());//idAmigo
+                                jsonObject.put("nombre", chat.getNombre());
+                                jsonObject.put("direccion", chat.getDireccion());
+                                jsonObject.put("telefono", chat.getTelefono());
+                                jsonObject.put("email", chat.getEmail());
+                                jsonObject.put("dui", chat.getDui());
+                                jsonObject.put("urlFoto", chat.getFoto());
+                                //jsonObject.put("urlCompletaFotoFirestore", chat.getUrlCompletaFotoFirestore());
+                                jsonObject.put("to", chat.getToken());
+                                jsonObject.put("from", miToken);
+                                jsonObject.put("token", chat.getToken());
+                                jsonArrayChats.put(jsonObject);
+                            }
+                            mostrarDatosChats();//setOnItemClickListener
+                        }catch (Exception e){
+                            mostrarMsg("Error al escuchar evento de firebase: " + e.getMessage());
+                        }
+                    }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+            }catch (Exception e){
+                mostrarMsg("Error al listar datos: " + e.getMessage());//Error ID
+            }
+        }else{
+        try{
+            db = new DB(this);
+            //cChat = db.lista_chat(cuentaID); _id
+            cChat = db.lista_chat(idCuenta);
+            if(cChat.moveToFirst()){
+                jsonArrayChats = new JSONArray();
+                do{
+                    jsonObject = new JSONObject();
+                    jsonObject.put("idChat", cChat.getString(0));
+                    jsonObject.put("nombre", cChat.getString(1));
+                    jsonObject.put("direccion", cChat.getString(2));
+                    jsonObject.put("telefono", cChat.getString(3));
+                    jsonObject.put("email", cChat.getString(4));
+                    jsonObject.put("dui", cChat.getString(5));
+                    jsonObject.put("urlFoto", cChat.getString(6));
+                    //jsonObject.put("cuentaID", cMascotas.getString(7));
+                    jsonObject.put("to", cChat.getString(7));
+                    jsonObject.put("token", cChat.getString(8));
+                    jsonObject.put("cuentaID", cChat.getString(9));
+                    jsonArrayChats.put(jsonObject);
+                }while(cChat.moveToNext());
+
+                mostrarDatosChats();
+
+            }else {
+/*                if(layout_chat.getVisibility() == View.VISIBLE){
+                    mostrarMsg("No hay chats registrados.");
+                    abrirAgregarChat();
+                }*/
+
+            }
         }catch (Exception e){
-
-            mostrarMsg("Error al listar datos: " + e.getMessage());//Error ID
+            mostrarMsg("Error: " + e.getMessage());
         }
+        }
+
+
     }
-    /*
-    private void listarDatos(){
-        try{
-            databaseReference  = FirebaseDatabase.getInstance().getReference("chats");
-            FirebaseMessaging.getInstance().getToken().addOnCompleteListener(tarea->{
-                if(!tarea.isSuccessful()){
-                    mostrarMsg("Error al obtener token: "+tarea.getException().getMessage());
-                    return;
-                }else{
-                    miToken = tarea.getResult();
-                    if( miToken!=null && miToken.length()>0 ){
-                        databaseReference.orderByChild("miToken").equalTo(miToken).addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                try{
-                                    if( snapshot.getChildrenCount()<=0 ){
-                                        parametros.putString("accion", "nuevo");
-                                        if(layout_chat.getVisibility() == View.VISIBLE){
-                                            mostrarMsg("No hay chats registrados.");
-                                            abrirAgregarChat();
-                                        }
-                                        //abrirAgregarChat();
-                                    }
-                                }catch (Exception e){
-                                    mostrarMsg("Error al llamar la ventana: " + e.getMessage());
-                                }
-                            }
-                            @Override
-                            public void onCancelled(@NonNull DatabaseError error) {
-                                mostrarMsg("Error se cancelo: " + error.getMessage());
-                            }
-                        });
-                    }
-                }
-            });
-            databaseReference.addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    try{
-                        for( DataSnapshot dataSnapshot : snapshot.getChildren() ){
-                            chats chat = dataSnapshot.getValue(chats.class);
-                            jsonObject = new JSONObject();
-                            jsonObject.put("idChat", chat.getIdChat());
-                            jsonObject.put("nombre", chat.getNombre());
-                            jsonObject.put("direccion", chat.getDireccion());
-                            jsonObject.put("telefono", chat.getTelefono());
-                            jsonObject.put("email", chat.getEmail());
-                            jsonObject.put("dui", chat.getDui());
-                            jsonObject.put("urlCompletaFotoFirestore", chat.getUrlCompletaFotoFirestore());
-                            jsonObject.put("urlFoto", chat.getFoto());
-                            jsonObject.put("miToken", chat.getMiToken());
-
-                            jsonArrayChats.put(jsonObject);
-                        }
-                            mostrarDatosChats();
-
-                    }catch (Exception e){
-                        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                        builder.setTitle("Error");
-                        builder.setMessage("Error al obtener datos de firebase: " + e.getMessage());
-                        builder.setPositiveButton("Aceptar", null);
-                        builder.create().show();
-                        //mostrarMsg("Error al escuchar evento de firebase: " + e.getMessage());
-
-                        mostrarMsg(" firebase: " + e.getMessage());
-                    }
-                }
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-
-                }
-            });
-        }catch (Exception e){
-            mostrarMsg("Error al listar datos: " + e.getMessage());
-        }
-    }*/
     private void mostrarDatosChats(){
         try{
             if(jsonArrayChats.length()>0){
@@ -847,18 +816,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             jsonObject.getString("dui"),
                             jsonObject.getString("urlFoto"),
                             //jsonObject.getString("urlCompletaFotoFirestore"),
-                            jsonObject.getString("to")
+                            jsonObject.getString("to"),
+                            jsonObject.getString("token")//llave
                     );
                     alChat.add(misChat);
                 }
                     alChatCopia.addAll(alChat);
                     ltsChat.setAdapter(new AdaptadorChats(this, alChat));
                     registerForContextMenu(ltsChat);
-            }else{
+/*            }else{
                 if(layout_chat.getVisibility() == View.VISIBLE){
                     mostrarMsg("No hay chats registrados.");
                     abrirAgregarChat();
-                }
+                }*/
             }
         }catch (Exception e){
             mostrarAlertDialog("Error ID al mostrar: " + e.getMessage());
@@ -901,7 +871,54 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
     private void eliminarChat(){
         try{
-            String nombre = jsonArrayChats.getJSONObject(posicion).getJSONObject("value").getString("nombre");
+
+        String nombre = jsonArrayChats.getJSONObject(posicion).getString("nombre");
+        AlertDialog.Builder confirmacion = new AlertDialog.Builder(this);
+        confirmacion.setTitle("Esta seguro de eliminar a: ");
+        confirmacion.setMessage(nombre);
+        confirmacion.setPositiveButton("Si", (dialog, which) -> {//8
+            try {
+                di = new detectarInternet(this);
+                if(di.hayConexionInternet()){//online
+
+        databaseReference  = FirebaseDatabase.getInstance().getReference("Persona_chats").child(jsonArrayChats.getJSONObject(posicion).getString("token")); // si no funciona cambiar idChat por llave
+
+        // Eliminar el registro
+        databaseReference.removeValue()
+                .addOnSuccessListener(aVoid -> {
+                    // Eliminación exitosa
+                    Log.d("Firebase", "Registro eliminado correctamente");
+                    Toast.makeText(MainActivity.this, "Registro eliminado", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    // Error al eliminar
+                    Log.e("Firebase", "Error al eliminar registro", e);
+                    Toast.makeText(MainActivity.this, "Error al eliminar", Toast.LENGTH_SHORT).show();
+                });
+                }
+                String respuesta = db.administrar_Chat("eliminar", new String[]{jsonArrayChats.getJSONObject(posicion).getString("idChat")});
+                if(respuesta.equals("ok")) {
+                    listarDatos(cuentaID);//idAmigo
+                    mostrarMsg("Registro eliminado con exito");
+                }else{
+                    mostrarMsg("Error al eliminar: " + respuesta);
+                }
+            }catch (Exception e){
+                mostrarMsg("Error al eliminar: " + e.getMessage());
+            }
+        });
+        confirmacion.setNegativeButton("No", (dialog, which) -> {
+            dialog.dismiss();
+        });
+        confirmacion.create().show();
+        }catch (Exception e){
+            mostrarMsg("Error al eliminar: " + e.getMessage());
+        }
+    //
+/*        try{ abrirVentanaChat()
+=======
+
+            String nombre = jsonArrayChats.getJSONObject(posicion).getString("nombre");
             AlertDialog.Builder confirmacion = new AlertDialog.Builder(this);
             confirmacion.setTitle("Esta seguro de eliminar a: ");
             confirmacion.setMessage(nombre);
@@ -909,18 +926,33 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 try {
                     di = new detectarInternet(this);
                     if(di.hayConexionInternet()){//online
-                        JSONObject datosChats = new JSONObject();
-                        String _id = jsonArrayChats.getJSONObject(posicion).getJSONObject("value").getString("_id");
-                        String _rev = jsonArrayChats.getJSONObject(posicion).getJSONObject("value").getString("_rev");
-                        String url = utilidades.url_mto + "/" + _id + "?rev=" + _rev;
-                        enviarDatosServidor objEnviarDatosServidor = new enviarDatosServidor(this);
-                        String respuesta = objEnviarDatosServidor.execute(datosChats.toString(), "DELETE", url).get();
-                        JSONObject respuestaJSON = new JSONObject(respuesta);
-                        if(!respuestaJSON.getBoolean("ok")) {
-                            mostrarMsg("Error al intentar eliminar: " + respuesta);
+
+                        try {
+                            String keyChatEliminar = jsonArrayChats.getJSONObject(posicion).getString("from");
+
+                            String[]datosChat = new String[]{jsonArrayChats.getJSONObject(posicion).getString("idChat")};
+                            String respuesta = db.administrar_Chat("eliminar", datosChat);
+                            if (respuesta.equals("ok")) {
+                                mostrarMsg("Registro eliminado con exito localmente");
+                            } else {
+                                mostrarMsg("Error al eliminar localmente: " + respuesta);
+                            }
+                            if (!keyChatEliminar.isEmpty()) {
+                                databaseReference = FirebaseDatabase.getInstance().getReference("Persona_chats");
+                                databaseReference.child(keyChatEliminar).removeValue().addOnSuccessListener(success -> {
+                                    mostrarMsg("Registro eliminado con exito.");
+                                }).addOnFailureListener(failure -> {
+                                    mostrarMsg("Error al eliminar datos: " + failure.getMessage());
+                                });
+                            } else {
+                                mostrarMsg("Error al guardar modificaciones en firebase.");
+                            }
+                        } catch (Exception e) {
+                            mostrarMsg("Error al eliminar mascota fireBase: " + e.getMessage());
+
                         }
                     }
-                    String respuesta = db.administrar_Chat("eliminar", new String[]{jsonArrayChats.getJSONObject(posicion).getJSONObject("value").getString("idChat")});
+                    String respuesta = db.administrar_Chat("eliminar", new String[]{jsonArrayChats.getJSONObject(posicion).getString("idChat")});
                     if(respuesta.equals("ok")) {
                         listarDatos();//idAmigo
                         mostrarMsg("Registro eliminado con exito");
@@ -937,7 +969,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             confirmacion.create().show();
         }catch (Exception e){
             mostrarMsg("Error eliminar: " + e.getMessage());
-        }
+        }*/
+
     }
     private void mostrarChats(){
         //ltsChat = findViewById(R.id.ltsChat);
@@ -1027,13 +1060,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
     void mostrarUbicacion(Location location){
         try{
-        lblUbicacion.setText("Mi ubicación: "+"\nLatitud: "+ location.getLatitude() + "\nLongitud: "+ location.getLongitude() + "\nAltitud: "+ location.getAltitude());
+        //lblUbicacion.setText("Mi ubicación: "+"\nLatitud: "+ location.getLatitude() + "\nLongitud: "+ location.getLongitude() + "\nAltitud: "+ location.getAltitude());
 /*        lblUbicacion.setText("Mi ubicación: "+"\nLatitud: "+ latitud + "\nLongitud: "+ longitud);*/
         latitud = location.getLatitude();
         longitud = location.getLongitude();
         }
         catch (Exception e){
-            lblUbicacion.setText("Error al obtener la ubicación: "+ e.getMessage());
+            mostrarMsg("Error al obtener la ubicación: "+ e.getMessage());
+            //lblUbicacion.setText("Error al obtener la ubicación: "+ e.getMessage());
         }
     }
 
@@ -1089,12 +1123,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     //comienzo el CRUB de cuentas
-
-//    Todos btn
-//    btnEditarCuenta
-//            btnEliminarCuenta
-//        btnCerrarSesion
-
     public void mostrarDatosCuenta(){
         try {
             Bundle parameters = getIntent().getExtras();
@@ -1143,37 +1171,44 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
                     try {
-                        String[] datos = {idCuentaActual,nombre, usuario, contraseña, email,llaveCuenta};
+                        String[] datos = {idCuentaActual, nombre, usuario, contraseña, email, llaveCuenta};
                         db = new DB(this);
                         String respuesta = db.administrar_cuentas("modificar", datos);
 
-                        try {
+                        di = new detectarInternet(this);
+                        try{
+                        if (di.hayConexionInternet()) {
+                            try {
 
-                            Map<String, Object> updates = new HashMap<>();
-                            updates.put("constructorIdCuenta",idCuentaActual );
-                            updates.put("constructorNombreCuenta", nombre);
-                            updates.put("constructorUsuarioCuenta", usuario);
-                            updates.put("constructorContraseñaCuenta", contraseña);
-                            updates.put("constructorCorreoCuenta", email);
-                            updates.put("constructorKeyCuenta", llaveCuenta);
+                                Map<String, Object> updates = new HashMap<>();
+                                updates.put("constructorIdCuenta", idCuentaActual);
+                                updates.put("constructorNombreCuenta", nombre);
+                                updates.put("constructorUsuarioCuenta", usuario);
+                                updates.put("constructorContraseñaCuenta", contraseña);
+                                updates.put("constructorCorreoCuenta", email);
+                                updates.put("constructorKeyCuenta", llaveCuenta);
 
+                                if (llaveCuenta != null || llaveCuenta == "") {
+                                    databaseReference = FirebaseDatabase.getInstance().getReference("cuentas");
+                                    databaseReference.child(llaveCuenta).updateChildren(updates).addOnSuccessListener(success -> {
+                                        mostrarMsg("Registro actualizado con exito.");
+                                    }).addOnFailureListener(failure -> {
+                                        mostrarMsg("Error al actualizar datos: " + failure.getMessage());
+                                    });
+                                } else {
+                                    mostrarMsg("Error al guardar en firebase.");
+                                }
+                                //String[] datos = {idCuentaActual,nombre, usuario, contraseña, email};
+                            } catch (Exception e) {
+                                mostrarMsg("Error al actualizar la cuenta en fireBase: " + e.getMessage());
 
-
-                            if( llaveCuenta!= null || llaveCuenta == ""){
-                                databaseReference = FirebaseDatabase.getInstance().getReference("citas");
-                                databaseReference.child(llaveCuenta).updateChildren(updates).addOnSuccessListener(success->{
-                                    mostrarMsg("Registro actualizado con exito.");
-                                }).addOnFailureListener(failure->{
-                                    mostrarMsg("Error al actualizar datos: "+failure.getMessage());
-                                });
-                            } else {
-                                mostrarMsg("Error al guardar en firebase.");
                             }
 
-                    //String[] datos = {idCuentaActual,nombre, usuario, contraseña, email};
+                            //String[] datos = {idCuentaActual,nombre, usuario, contraseña, email};
 
 
-                        } catch (Exception e) {
+                        }
+                    }catch (Exception e) {
                             mostrarMsg("Error al actualizar la cuenta en fireBase: " + e.getMessage());
                         }
 
@@ -1264,34 +1299,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         temv = findViewById(R.id.txtEmailCuenta);
         temv.setEnabled(avilitado);
 
-    }
-    @Override
-    public void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
-        TextView txtUsuario = findViewById(R.id.txtUsuarioCuenta);
-        TextView txtNombre = findViewById(R.id.txtNombreCuenta);
-        TextView txtContraseña = findViewById(R.id.txtContraseñaCuenta);
-        TextView txtEmail = findViewById(R.id.txtEmailCuenta);
-
-        outState.putString("idCuenta", txtUsuario.getText().toString());
-        outState.putString("usuarioCuenta", txtUsuario.getText().toString());
-        outState.putString("nombreCuenta", txtNombre.getText().toString());
-        outState.putString("contrasenaCuenta", txtContraseña.getText().toString());
-        outState.putString("correoCuenta", txtEmail.getText().toString());
-    }
-    @Override
-    public void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        TextView txtUsuario = findViewById(R.id.txtUsuarioCuenta);
-        TextView txtNombre = findViewById(R.id.txtNombreCuenta);
-        TextView txtContraseña = findViewById(R.id.txtContraseñaCuenta);
-        TextView txtEmail = findViewById(R.id.txtEmailCuenta);
-
-        idCuentaActual = savedInstanceState.getString("idCuenta");
-        txtUsuario.setText(savedInstanceState.getString("usuarioCuenta"));
-        txtNombre.setText(savedInstanceState.getString("nombre"));
-        txtContraseña.setText(savedInstanceState.getString("contrasenaCuenta"));
-        txtEmail.setText(savedInstanceState.getString("correoCuenta"));
     }
 
 
