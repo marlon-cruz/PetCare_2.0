@@ -37,6 +37,7 @@ public class agregar_chat extends AppCompatActivity {
     DB db;
     Bundle parametros = new Bundle();
     TextView tempVal;
+    String cuentaID;
     String accion = "nuevo", idChat = "", id="", rev="",miKey = "";
     ImageView img;
     String urlCompletaFoto = "";
@@ -58,7 +59,7 @@ public class agregar_chat extends AppCompatActivity {
 
         fab = findViewById(R.id.fabListaChat);
         fab.setOnClickListener(view->abrirVentana());
-
+        cuentaID = datosCuentaEnUso.getIdCuenta();
         mostrarDatos();
         tomarFoto();
     }
@@ -79,7 +80,7 @@ public class agregar_chat extends AppCompatActivity {
         }).addOnFailureListener(e -> {
             mostrarMsg("Error al subir la foto: "+e.getMessage());
         });
-    }*/
+    }llave*/
     private void abrirVentana() {
         Intent intent = new Intent(this, MainActivity.class);
         intent.putExtra("cargar_layout","chat");
@@ -129,7 +130,8 @@ public class agregar_chat extends AppCompatActivity {
                 //id = datos.getString("_id");
                 //rev = datos.getString("_rev");
                 idChat = datos.getString("idChat");
-                miKey = datos.getString("llave");
+                miKey = datos.getString("token");
+
 
                 tempVal = findViewById(R.id.txtNombreChatMascota);
                 tempVal.setText(datos.getString("nombre"));
@@ -168,14 +170,14 @@ public class agregar_chat extends AppCompatActivity {
                 mostrarMsg("Error: Todos los campos son obligatorios.");
                 return;
             }
-            String[] datos = {idChat, nombre, direccion, telefono, email, dui,  urlCompletaFoto,miToken,miKey};
+            String[] datos = {idChat, nombre, direccion, telefono, email, dui,  urlCompletaFoto,miToken,miKey, cuentaID};
 
             if (accion == "modificar") {
                 try {
                     db = new DB(this);
                     //String[] datos = {idChat, nombre, direccion, telefono, email, dui,  urlCompletaFoto, cuentaID,miToken};
-                    String mensaje = db.administrar_Citas(accion, datos);
-                    mostrarMsg("Estado de la cita: " + mensaje);
+                    String mensaje = db.administrar_Chat(accion, datos);
+                    mostrarMsg("Estado del chat: " + mensaje);
                     //comienzo de actualizacion en fireBase
 
                     try {
@@ -187,9 +189,9 @@ public class agregar_chat extends AppCompatActivity {
                         updates.put("email", email);
                         updates.put("dui", dui);
                         updates.put("urlFoto", urlCompletaFoto);
-                        //updates.put("usuario", cuentaID);
                         updates.put("token", miToken);
                         updates.put("llave", miKey);
+                        updates.put("usuario", cuentaID);
 
                         if( miToken!= null || miToken == ""){
                             databaseReference = FirebaseDatabase.getInstance().getReference("Persona_chats");
@@ -213,6 +215,7 @@ public class agregar_chat extends AppCompatActivity {
                 db = new DB(this);
                 try{
                 String mensaje = db.administrar_Chat("nuevo", datos);
+                mostrarMsg("Estado del chat local: " + mensaje);
                 }catch (Exception e){
                     mostrarMsg("Error al guardar chat localmente: "+e.getMessage());
                     return;
@@ -235,7 +238,8 @@ public class agregar_chat extends AppCompatActivity {
                     });
                 } else {
                     mostrarMsg("Error al guardar en firebase.");
-                }}catch (Exception e){
+                }
+                }catch (Exception e){
                     mostrarAlert("Error al guardar en firebase: "+e.getMessage());
                 }
 

@@ -130,7 +130,7 @@ public class agregar_citas extends AppCompatActivity {
                     mascotas_spinner mascota = new mascotas_spinner();
                     mascota.setIdMascota(cursor.getInt(cursor.getColumnIndex("idMascota")));
                     mascota.setNombre(cursor.getString(cursor.getColumnIndex("nombre")));
-                    urlCompletaFoto = cursor.getString(cursor.getColumnIndex("foto"));
+                   // urlCompletaFoto = cursor.getString(cursor.getColumnIndex("foto")); Error 1
                     listaNombres.add(mascota);
                 }
                // mascota.setFoto(cursor.getString(2));
