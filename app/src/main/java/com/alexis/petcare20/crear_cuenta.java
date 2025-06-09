@@ -49,6 +49,22 @@ public class crear_cuenta extends AppCompatActivity {
         obtenerToken();
     }
 
+    private boolean validarCorreo(String correo) {
+/*        if (correo.isEmpty()) {
+            mostrarMsg("Error: El correo no puede estar vacío.");
+            return false;
+        }*/
+        if (!correo.contains("@")) {
+            mostrarMsg("Error: El correo debe contener '@'.");
+            return false;
+        }
+        if (!correo.contains(".")) {
+            mostrarMsg("Error: El correo debe contener un punto '.' después de '@'.");
+            return false;
+        }
+        // Si el correo es válido, continuar con la lógica
+        return true;
+    }
     private void crearCuenta() {
         TextView temval = findViewById(R.id.txtUsuario);
         String usuario = temval.getText().toString();
@@ -59,6 +75,9 @@ public class crear_cuenta extends AppCompatActivity {
         temval = findViewById(R.id.txtNombreUser);
         String nombre = temval.getText().toString();
 
+        if (!validarCorreo(correo)) {
+            return;
+        }
 
         if (nombre.isEmpty() || usuario.isEmpty() || contraseña.isEmpty() || correo.isEmpty()) {
             mostrarMsg("Por favor, completa todos los campos.");
