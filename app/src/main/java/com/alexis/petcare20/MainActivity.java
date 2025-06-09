@@ -1141,6 +1141,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             mostrarMsg("Error al obtener datos de la cuenta: " + e.getMessage());
         }
     }
+    private boolean validarCorreo(String correo) {
+/*        if (correo.isEmpty()) {
+            mostrarMsg("Error: El correo no puede estar vacío.");
+            return false;
+        }*/
+        if (!correo.contains("@")) {
+            mostrarMsg("Error: El correo debe contener '@'.");
+            return false;
+        }
+        if (!correo.contains(".")) {
+            mostrarMsg("Error: El correo debe contener un punto '.' después de '@'.");
+            return false;
+        }
+        // Si el correo es válido, continuar con la lógica
+        return true;
+    }
     public void editarCuenta(){
         try {
 
@@ -1163,6 +1179,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     String usuario = txtUsuario.getText().toString();
                     String contraseña = txtContraseña.getText().toString();
                     String email = txtEmail.getText().toString();
+
+                    if (!validarCorreo(email)) {
+                        return;
+                    }
 
                     if (nombre.isEmpty() || usuario.isEmpty() || contraseña.isEmpty() || email.isEmpty()) {
                         mostrarMsg("Por favor, complete todos los campos.");
