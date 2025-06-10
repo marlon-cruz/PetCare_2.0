@@ -51,16 +51,16 @@ public class AdaptadorCitas extends BaseAdapter {
             misCitas = alCitas.get(position);
 
             TextView tempVal = itemView.findViewById(R.id.lblNombreCitaAdaptador);
-            tempVal.setText("Control de " + misCitas.getnombreMascota());
+            tempVal.setText("Control de " + misCitas.getNombreMascota());
 
             tempVal = itemView.findViewById(R.id.lblFechaAdaptador);
-            tempVal.setText(misCitas.getfecha());
+            tempVal.setText(misCitas.getFecha());
 
             tempVal = itemView.findViewById(R.id.lblClinicaAdaptador);
-            tempVal.setText(misCitas.getclinica());
+            tempVal.setText(misCitas.getClinica());
 
             tempVal = itemView.findViewById(R.id.lblNotaAdaptador);
-            tempVal.setText(misCitas.getnota());
+            tempVal.setText(misCitas.getNota());
 
             ImageView img = itemView.findViewById(R.id.imgFotoAdaptador);
             Bitmap bitmap = BitmapFactory.decodeFile(misCitas.getFoto());

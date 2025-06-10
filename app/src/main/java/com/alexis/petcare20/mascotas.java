@@ -28,9 +28,7 @@ public class mascotas {
         this.usuario = usuario;
         this.llave = llave;
     }
-    public String getLlave() {
-        return llave;
-    }
+
 
     public void setLlave(String llave) {
         this.llave = llave;
@@ -41,6 +39,15 @@ public class mascotas {
 
     public void setDueño(String dueño) {
         this.dueño = dueño;
+    }
+
+    public String getLlave() {
+        return llave;
+    }
+
+
+    public String getUsuario() {
+        return usuario;
     }
 
     public String getEdad() {
