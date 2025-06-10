@@ -29,19 +29,57 @@ public class citas {
         //this.miToken = miToken;
     }
 
-/*    public String getMiToken() {
-        return miToken;
+
+    public String getClinica() {
+        return clinica;
     }
 
-    public void setMiToken(String miToken) {
-        this.miToken = miToken;
-    }*/
-        public String getLlave() {
+    public void setClinica(String clinica) {
+        this.clinica = clinica;
+    }
+
+    public String getFecha() {
+        return fecha;
+    }
+
+    public void setFecha(String fecha) {
+        this.fecha = fecha;
+    }
+
+    public String getIdCitas() {
+        return idCitas;
+    }
+
+    public void setIdCitas(String idCitas) {
+        this.idCitas = idCitas;
+    }
+
+    public String getLlave() {
         return llave;
     }
 
     public void setLlave(String llave) {
         this.llave = llave;
+    }
+
+    public String getNombreMascota() {
+        return nombreMascota;
+    }
+
+    public void setNombreMascota(String nombreMascota) {
+        this.nombreMascota = nombreMascota;
+    }
+
+    public String getNota() {
+        return nota;
+    }
+
+    public void setNota(String nota) {
+        this.nota = nota;
+    }
+
+    public String getUsuario() {
+        return usuario;
     }
 
     public String getidCitas() {
