@@ -33,7 +33,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -117,6 +119,7 @@ public class agregar_citas extends AppCompatActivity {
         });
 
     }
+
     private List<mascotas_spinner> nombresMascotas(){
         List<mascotas_spinner> listaNombres = new ArrayList<>();
         Cursor cursor = db.lista_nombre_mascota_citas(cuentaID);
@@ -124,13 +127,13 @@ public class agregar_citas extends AppCompatActivity {
         if( cursor.moveToFirst() ){
             do{
                 // Verificar si la columna existe antes de acceder a ella
-                if (cursor.getColumnIndex("idMascota") == -1 || cursor.getColumnIndex("nombre") == -1 || cursor.getColumnIndex("foto") == -1) {
+                if (cursor.getColumnIndex("idMascota") == -1 || cursor.getColumnIndex("nombre") == -1) {
                     mostrarMsg("Error: Columnas no encontradas en la consulta.");
                 }else{
                     mascotas_spinner mascota = new mascotas_spinner();
                     mascota.setIdMascota(cursor.getInt(cursor.getColumnIndex("idMascota")));
                     mascota.setNombre(cursor.getString(cursor.getColumnIndex("nombre")));
-                    urlCompletaFoto = cursor.getString(cursor.getColumnIndex("foto"));
+                   // urlCompletaFoto = cursor.getString(cursor.getColumnIndex("foto")); Error 1
                     listaNombres.add(mascota);
                 }
                // mascota.setFoto(cursor.getString(2));
@@ -156,6 +159,41 @@ public class agregar_citas extends AppCompatActivity {
             mostrarMsg("Error al tomar la foto: "+e.getMessage());
         }
     }
+    public boolean FechaValida(String fecha, String formato) {
+        SimpleDateFormat FormatoFechaValido = new SimpleDateFormat(formato);
+        FormatoFechaValido.setLenient(false); // Esto evita que fechas como "31/02/2023" se ajusten automáticamente (Esta en modo estricto)
+        Date fechaActual = new Date();
+        try {
+            Date fechaIngresada = FormatoFechaValido.parse(fecha);
+            if (fechaIngresada.before(fechaActual)) {
+                mostrarMsg("La fecha no puede ser anterior a la fecha actual.");
+                return false; // La fecha no es válida
+            }
+
+            return true; // Si no lanza excepción, la fecha es válida
+        } catch (Exception e) {
+            return false; // La fecha no es válida
+        }
+    }
+/*    public boolean FechaValida(String fecha, String formato) {
+        SimpleDateFormat FormatoFechaValido = new SimpleDateFormat(formato);
+        FormatoFechaValido.setLenient(false); // Esto evita que fechas como "31/02/2023" se ajusten automáticamente (Esta en modo estricto)
+        Date fechaActual = new Date();
+        try {
+            Date fechaIngresada = FormatoFechaValido.parse(fecha);
+            if(fecha != "dd/MM/yyyy") {
+                mostrarMsg("Formato de fecha inválido. Use el formato dd/MM/yyyy.");
+                return false; // La fecha no es válida
+            }else if(fechaIngresada.before(fechaActual)) {
+                    mostrarMsg("La fecha no puede ser anterior a la fecha actual.");
+                    return false; // La fecha no es válida
+            }
+
+            return true; // Si no lanza excepción, la fecha es válida
+        } catch (Exception e) {
+            return false; // La fecha no es válida
+        }
+    }*/
     private void mostrarDatos(){
         try {
             Bundle parametros = getIntent().getExtras();
@@ -182,7 +220,7 @@ public class agregar_citas extends AppCompatActivity {
                 tempVal = findViewById(R.id.txtNota);
                 tempVal.setText(datos.getString("nota"));
 
-                urlCompletaFoto = datos.getString("urlFoto");
+                urlCompletaFoto = datos.getString("foto");
                 img.setImageURI(Uri.parse(urlCompletaFoto));
             }
 
@@ -222,8 +260,11 @@ public class agregar_citas extends AppCompatActivity {
         String nota = tempVal.getText().toString();
 
         //String usuario = getIntent().getStringExtra("usuarioCuenta");
-
-
+        if(!FechaValida(fecha, "dd/MM/yyyy")) {
+            mostrarMsg("Error: Fecha no válida. Formato esperado: dd/MM/yyyy");
+            return;
+        }
+        //FechaValida(fecha, "dd/MM/yyyy");
         if (fecha.isEmpty() || clinica.isEmpty() || nota.isEmpty()) {
         //if (nombreMascota.isEmpty() || fecha.isEmpty() || clinica.isEmpty() || nota.isEmpty()) {
             mostrarMsg("Error: Todos los campos son obligatorios.");

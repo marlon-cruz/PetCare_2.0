@@ -109,6 +109,7 @@ public class agregar_mascotas extends AppCompatActivity {
 
     private void guardarMascota() {
     try {
+        db = new DB(this);
         temval = findViewById(R.id.txtNombreMascota);
         String nombre = temval.getText().toString();
         temval = findViewById(R.id.txtEdad);
@@ -125,7 +126,6 @@ public class agregar_mascotas extends AppCompatActivity {
             return;
         }
         cuentaID = datosCuentaEnUso.getIdCuenta();
-
         String datosMascota[] = {idMascota, dueño, nombre, edad, raza, problemasMedicos, urlCompletaFoto, cuentaID,miKey};
         //Toast.makeText(getApplicationContext(), "Datos: " + datosMascota[7], Toast.LENGTH_LONG).show();
         if (accion.equals("modificar")) {
