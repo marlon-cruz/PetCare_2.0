@@ -406,6 +406,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 confirmacion.setMessage(nombre);
                 confirmacion.setPositiveButton("Si", (dialog, which) -> {
                     try {
+
+                        di = new detectarInternet(MainActivity.this);
+                        if (di.hayConexionInternet()) {
+                            databaseReference  = FirebaseDatabase.getInstance().getReference("citas").child(jsonArray.getJSONObject(posicion).getString("llave"));
+
+                            // Eliminar el registro
+                            databaseReference.removeValue()
+                                    .addOnSuccessListener(aVoid -> {
+                                        // Eliminación exitosa
+                                        Log.d("Firebase", "Registro eliminado correctamente");
+                                        Toast.makeText(MainActivity.this, "Registro eliminado", Toast.LENGTH_SHORT).show();
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        // Error al eliminar
+                                        Log.e("Firebase", "Error al eliminar registro", e);
+                                        Toast.makeText(MainActivity.this, "Error al eliminar", Toast.LENGTH_SHORT).show();
+                                    });
+                        }
+
                         String respuesta = db.administrar_Citas("eliminar", new String[]{jsonArray.getJSONObject(posicion).getString("idCitas")});
                         if (respuesta.equals("ok")) {
                             obtenerDatosCitas(cuentaID);
@@ -654,6 +673,24 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             confirmacion.setPositiveButton("Si", (dialog, which) -> {
                 try {
                     String respuesta = db.administrar_Mascota("eliminar", new String[]{jsonArrayMascotas.getJSONObject(posicion).getString("idMascota")});
+                    di = new detectarInternet(this);
+                    if(di.hayConexionInternet()){
+                        databaseReference  = FirebaseDatabase.getInstance().getReference("mascotas").child(jsonArrayMascotas.getJSONObject(posicion).getString("llave"));
+
+                        // Eliminar el registro
+                        databaseReference.removeValue()
+                                .addOnSuccessListener(aVoid -> {
+                                    // Eliminación exitosa
+                                    Log.d("Firebase", "Registro eliminado correctamente");
+                                    Toast.makeText(MainActivity.this, "Registro eliminado", Toast.LENGTH_SHORT).show();
+                                })
+                                .addOnFailureListener(e -> {
+                                    // Error al eliminar
+                                    Log.e("Firebase", "Error al eliminar registro", e);
+                                    Toast.makeText(MainActivity.this, "Error al eliminar", Toast.LENGTH_SHORT).show();
+                                });
+                    }
+
                     if (respuesta.equals("ok")) {
                         obtenerDatosMascotas(cuentaID);
                         buscarMascotas();
@@ -1281,9 +1318,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     confirmacion.setMessage("Eliminar cuenta?");
                     confirmacion.setPositiveButton("Si", (dialog, which) -> {
                         try {
-                            di = new detectarInternet(this);
-
                             String respuesta = db.administrar_cuentas("eliminar", new String[]{idCuentaActual});
+                            di = new detectarInternet(this);
+                            if(di.hayConexionInternet()){
+                                databaseReference  = FirebaseDatabase.getInstance().getReference("cuentas").child(llaveCuenta); // si no funciona cambiar idChat por llave
+
+                                // Eliminar el registro
+                                databaseReference.removeValue()
+                                        .addOnSuccessListener(aVoid -> {
+                                            // Eliminación exitosa
+                                            Log.d("Firebase", "Registro eliminado correctamente");
+                                            Toast.makeText(MainActivity.this, "Registro eliminado", Toast.LENGTH_SHORT).show();
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            // Error al eliminar
+                                            Log.e("Firebase", "Error al eliminar registro", e);
+                                            Toast.makeText(MainActivity.this, "Error al eliminar", Toast.LENGTH_SHORT).show();
+                                        });
+                            }
+
                             if(respuesta.equals("ok")) {
                                 Intent intent = new Intent(this, Login.class);
                                 startActivity(intent);
