@@ -410,7 +410,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                         di = new detectarInternet(MainActivity.this);
                         if (di.hayConexionInternet()) {
+
                             databaseReference  = FirebaseDatabase.getInstance().getReference("citas").child(llave);
+
 
                             // Eliminar el registro
                             databaseReference.removeValue()
@@ -678,7 +680,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     String respuesta = db.administrar_Mascota("eliminar", new String[]{jsonArrayMascotas.getJSONObject(posicion).getString("idMascota")});
                     di = new detectarInternet(this);
                     if(di.hayConexionInternet()){
+
                         databaseReference  = FirebaseDatabase.getInstance().getReference("mascotas").child(llave); // si no funciona cambiar idMascota por llave
+
                         // Eliminar el registro
                         databaseReference.removeValue()
                                 .addOnSuccessListener(aVoid -> {
