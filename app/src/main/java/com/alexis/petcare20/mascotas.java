@@ -28,7 +28,13 @@ public class mascotas {
         this.usuario = usuario;
         this.llave = llave;
     }
+    public String getLlave() {
+        return llave;
+    }
 
+    public void setLlave(String llave) {
+        this.llave = llave;
+    }
     public String getDueño() {
         return dueño;
     }

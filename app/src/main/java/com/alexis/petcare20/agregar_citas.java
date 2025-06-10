@@ -162,6 +162,17 @@ public class agregar_citas extends AppCompatActivity {
     public boolean FechaValida(String fecha, String formato) {
         SimpleDateFormat FormatoFechaValido = new SimpleDateFormat(formato);
         FormatoFechaValido.setLenient(false); // Esto evita que fechas como "31/02/2023" se ajusten automáticamente (Esta en modo estricto)
+        try {
+            Date fechaIngresada = FormatoFechaValido.parse(fecha);
+            return true;
+             // Si no lanza excepción, la fecha es válida
+        } catch (Exception e) {
+            return false; // La fecha no es válida
+        }
+    }
+    public boolean FechaAnterior(String fecha) {
+        SimpleDateFormat FormatoFechaValido = new SimpleDateFormat("dd/MM/yyyy");
+        FormatoFechaValido.setLenient(false); // Esto evita que fechas como "31/02/2023" se ajusten automáticamente (Esta en modo estricto)
         Date fechaActual = new Date();
         try {
             Date fechaIngresada = FormatoFechaValido.parse(fecha);
@@ -169,31 +180,13 @@ public class agregar_citas extends AppCompatActivity {
                 mostrarMsg("La fecha no puede ser anterior a la fecha actual.");
                 return false; // La fecha no es válida
             }
-
-            return true; // Si no lanza excepción, la fecha es válida
-        } catch (Exception e) {
+        } catch (ParseException e) {
+            mostrarMsg("Error al parsear la fecha: " + e.getMessage());
             return false; // La fecha no es válida
         }
+        return true;
     }
-/*    public boolean FechaValida(String fecha, String formato) {
-        SimpleDateFormat FormatoFechaValido = new SimpleDateFormat(formato);
-        FormatoFechaValido.setLenient(false); // Esto evita que fechas como "31/02/2023" se ajusten automáticamente (Esta en modo estricto)
-        Date fechaActual = new Date();
-        try {
-            Date fechaIngresada = FormatoFechaValido.parse(fecha);
-            if(fecha != "dd/MM/yyyy") {
-                mostrarMsg("Formato de fecha inválido. Use el formato dd/MM/yyyy.");
-                return false; // La fecha no es válida
-            }else if(fechaIngresada.before(fechaActual)) {
-                    mostrarMsg("La fecha no puede ser anterior a la fecha actual.");
-                    return false; // La fecha no es válida
-            }
 
-            return true; // Si no lanza excepción, la fecha es válida
-        } catch (Exception e) {
-            return false; // La fecha no es válida
-        }
-    }*/
     private void mostrarDatos(){
         try {
             Bundle parametros = getIntent().getExtras();
@@ -261,7 +254,11 @@ public class agregar_citas extends AppCompatActivity {
 
         //String usuario = getIntent().getStringExtra("usuarioCuenta");
         if(!FechaValida(fecha, "dd/MM/yyyy")) {
-            mostrarMsg("Error: Fecha no válida. Formato esperado: dd/MM/yyyy");
+            mostrarMsg("Fecha no válida. Formato esperado: dd/MM/yyyy");
+            return;
+        }
+        if(!FechaAnterior(fecha)) {
+            mostrarMsg("Fecha no puede ser anterior a la fecha actual.");
             return;
         }
         //FechaValida(fecha, "dd/MM/yyyy");
@@ -273,6 +270,10 @@ public class agregar_citas extends AppCompatActivity {
         cuentaID = datosCuentaEnUso.getIdCuenta();
         if (cuentaID == null || cuentaID.isEmpty()) {
             mostrarMsg("Error: Usuario no encontrado.");
+            return;
+        }
+        if(nombre_spinner == null || nombre_spinner.isEmpty()){
+            mostrarMsg("Debe agregar una mascota para agendar una cita.");
             return;
         }
 

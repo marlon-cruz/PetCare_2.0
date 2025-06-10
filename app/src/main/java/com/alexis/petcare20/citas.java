@@ -36,6 +36,13 @@ public class citas {
     public void setMiToken(String miToken) {
         this.miToken = miToken;
     }*/
+        public String getLlave() {
+        return llave;
+    }
+
+    public void setLlave(String llave) {
+        this.llave = llave;
+    }
 
     public String getidCitas() {
         return idCitas;
