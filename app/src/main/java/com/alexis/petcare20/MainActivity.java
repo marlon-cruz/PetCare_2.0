@@ -401,6 +401,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void eliminarCita () {
             try {
                 String nombre = jsonArray.getJSONObject(posicion).getString("nombre");
+                String llave = jsonArray.getJSONObject(posicion).getString("llave");
                 AlertDialog.Builder confirmacion = new AlertDialog.Builder(this);
                 confirmacion.setTitle("Esta seguro de eliminar a: ");
                 confirmacion.setMessage(nombre);
@@ -409,7 +410,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                         di = new detectarInternet(MainActivity.this);
                         if (di.hayConexionInternet()) {
-                            databaseReference  = FirebaseDatabase.getInstance().getReference("citas").child(jsonArray.getJSONObject(posicion).getString("llave"));
+
+                            databaseReference  = FirebaseDatabase.getInstance().getReference("citas").child(llave);
+
 
                             // Eliminar el registro
                             databaseReference.removeValue()
@@ -667,6 +670,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private  void eliminarMascota(){
         try {
             String nombreMascota = jsonArrayMascotas.getJSONObject(posicion).getString("nombre");
+            String llave = jsonArrayMascotas.getJSONObject(posicion).getString("llave");
+            mostrarMsg(llave);
             AlertDialog.Builder confirmacion = new AlertDialog.Builder(this);
             confirmacion.setTitle("Esta seguro de eliminar a: ");
             confirmacion.setMessage(nombreMascota);
@@ -675,7 +680,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     String respuesta = db.administrar_Mascota("eliminar", new String[]{jsonArrayMascotas.getJSONObject(posicion).getString("idMascota")});
                     di = new detectarInternet(this);
                     if(di.hayConexionInternet()){
-                        databaseReference  = FirebaseDatabase.getInstance().getReference("mascotas").child(jsonArrayMascotas.getJSONObject(posicion).getString("llave"));
+
+                        databaseReference  = FirebaseDatabase.getInstance().getReference("mascotas").child(llave); // si no funciona cambiar idMascota por llave
 
                         // Eliminar el registro
                         databaseReference.removeValue()
@@ -910,6 +916,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         try{
 
         String nombre = jsonArrayChats.getJSONObject(posicion).getString("nombre");
+        String llave = jsonArrayChats.getJSONObject(posicion).getString("token");
+        mostrarMsg(llave);
         AlertDialog.Builder confirmacion = new AlertDialog.Builder(this);
         confirmacion.setTitle("Esta seguro de eliminar a: ");
         confirmacion.setMessage(nombre);
@@ -918,7 +926,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 di = new detectarInternet(this);
                 if(di.hayConexionInternet()){//online
 
-        databaseReference  = FirebaseDatabase.getInstance().getReference("Persona_chats").child(jsonArrayChats.getJSONObject(posicion).getString("token")); // si no funciona cambiar idChat por llave
+        databaseReference  = FirebaseDatabase.getInstance().getReference("Persona_chats").child(llave); // si no funciona cambiar idChat por llave
 
         // Eliminar el registro
         databaseReference.removeValue()
